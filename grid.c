@@ -27,14 +27,14 @@ void placeRandomItems(char** grid, int n, char item, char count) {
 
 	srand(time(NULL));
 
-	int placed = 0;
-	while (placed < count) {
-		int r = rand() % n;
-		int c = rand() % n;
+	int already_placed = 0;
+	while (already_placed < count) {
+		int rand_row = rand() % n;
+		int rand_col = rand() % n;
 
-		if (grid[r][c] == '.') {
-			grid[r][c] = item;
-			placed++;
+		if (grid[rand_row][rand_col] == '.') {
+			grid[rand_row][rand_col] = item;
+			already_placed++;
 		}
 	}
 }

@@ -2,7 +2,8 @@
 #define PLAYER_H
 
 typedef struct {
-    int current_row, current_col;
+    int currentRow;
+    int currentCol;
     int lives;
     int intel;
     int isActive;
