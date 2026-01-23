@@ -12,6 +12,8 @@ typedef struct {
 
 
 void initPlayer(Player* p, char symbol, int x, int y);
+int checkValidMove(char** grid, int r, int c, int n);
+int movePlayer(Player* p, char input, char** grid, int n);
 
 
 #endif

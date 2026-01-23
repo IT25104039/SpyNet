@@ -1,96 +1,79 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include "grid.h"
 
 char** createGrid(int n) {
-	
-	char** grid = (char**)malloc(n * sizeof(char*));
+    char** grid = (char**)malloc(n * sizeof(char*));
+    if (grid == NULL) {
+        exit(1);
+    }
 
-	if (grid == NULL) {	
-		printf("Memory allocation failed!\n");
-		exit(1);
-	}
-
-	for (int i = 0; i < n; i++) {
-		grid[i] = (char *)malloc(n * sizeof(char));
-		
-		if (grid[i] == NULL) {
-			printf("memory allocation failed for row %d!\n", i);
-			exit(1);
-		}
-	}
-
-	return grid;
-}
-
-void placeRandomItems(char** grid, int n, char item, char count) {
-
-	srand(time(NULL));
-
-	int already_placed = 0;
-	while (already_placed < count) {
-		int rand_row = rand() % n;
-		int rand_col = rand() % n;
-
-		if (grid[rand_row][rand_col] == '.') {
-			grid[rand_row][rand_col] = item;
-			already_placed++;
-		}
-	}
+    for (int i = 0; i < n; i++) {
+        grid[i] = (char*)malloc(n * sizeof(char));
+        if (grid[i] == NULL) {
+            exit(1);
+        }
+    }
+    return grid;
 }
 
 void initGrid(char** grid, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            grid[i][j] = '.';
+        }
+    }
 
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n; j++) {
-			grid[i][j] = '.';
-		}
-	}
+    int counts[4] = {3, 2, 1, n};
+    char items[4] = {'I', 'L', 'X', '#'};
 
-	placeRandomItems(grid, n, 'I', 3); // 3 Intel
-    placeRandomItems(grid, n, 'L', 2); // 2 Lives
-    placeRandomItems(grid, n, 'X', 1); // 1 Extraction Point
-    placeRandomItems(grid, n, '#', 4);
+    for (int k = 0; k < 4; k++) {
+        int placed = 0;
+        while (placed < counts[k]) {
+            int r = rand() % n;
+            int c = rand() % n;
+            
+            if (grid[r][c] == '.' && (r != 0 || c != 0)) {
+                grid[r][c] = items[k];
+                placed++;
+            }
+        }
+    }
+
+	grid[0][1] = '.'; 
+    grid[1][0] = '.'; 
+    grid[1][1] = '.';
+}
+
+void displayGrid(char** grid, int n, Player p) {
+    printf("\n");
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("+---");
+        }
+        printf("+\n");
+
+        for (int j = 0; j < n; j++) {
+            printf("| ");
+            if (i == p.currentRow && j == p.currentCol) {
+                printf("%c ", p.symbol);
+            } else {
+                printf("%c ", grid[i][j]);
+            }
+        }
+        printf("|\n");
+    }
+
+    for (int i = 0; i < n; i++) {
+        printf("+---");
+    }
+    printf("+\n");
 }
 
 void freeGrid(char** grid, int n) {
-
-	for (int i = 0; i < n; i++) {
-		free(grid[i]);
-	}	
-	
-	free(grid);
-}
-
-
-void displayGrid(char** grid, int n) {
-
-	printf("\n");
-
-	for (int i = 0; i < n; i++) {
-
-		for (int j = 0; j < n; j++) {
-			printf("+---");
-			if (j == n-1) printf("+");
-		}
-		printf("\n");
-
-		for (int j = 0; j < n; j++) {
-			printf("| %c ", grid[i][j]);
-		}
-		printf("|\n");
-	}
-
-	for (int i = 0; i < n; i++) {
-		printf("+---");
-	}
-	printf("+\n");
-}
-
-int main() {
-	char** grid = createGrid(5);
-	initGrid(grid, 5);
-	displayGrid(grid, 5);
-	freeGrid(grid, 5);
-
+    for (int i = 0; i < n; i++) {
+        free(grid[i]);
+    }
+    free(grid);
 }

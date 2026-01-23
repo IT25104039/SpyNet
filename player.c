@@ -28,7 +28,7 @@ int checkValidMove(char** grid, int r, int c, int n) {
 
 int movePlayer(Player* p, char input, char** grid, int n) {
 
-    if (!p->isActive) return;
+    if (!p->isActive) return 0;
 
     int newRow = p->currentRow;
     int newCol = p->currentCol;
@@ -59,11 +59,11 @@ int movePlayer(Player* p, char input, char** grid, int n) {
         printf(">> Invalid direction. life lost.\n");
         p->lives--;
 
-    } else if (checkValidMove(newRow, newCol, n, grid)) {
+    } else if (checkValidMove(grid, newRow, newCol, n)) {
 
         p->currentRow = newRow;
         p->currentCol = newCol;
-        
+
     } else {
 
         printf(">> Obstacle detected. Life lost.\n");
@@ -73,4 +73,6 @@ int movePlayer(Player* p, char input, char** grid, int n) {
     if (p->lives <= 0) {
         p->isActive = 0;
     }
+
+    return 1;
 }

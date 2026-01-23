@@ -1,10 +1,11 @@
 #ifndef GRID_H
 #define GRID_H
 
+#include "player.h"
+
 char** createGrid(int n);
 void initGrid(char** grid, int n);
-void displayGrid(char** grid, int n);
-void printGrid(char** grid, int n);
+void displayGrid(char** grid, int n, Player p);
 void freeGrid(char** grid, int n);
 
 #endif
