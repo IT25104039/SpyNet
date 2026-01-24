@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -6,74 +5,115 @@
 #include "grid.h"   
 #include "player.h" 
 #include "game.h"   
+#include "computer.h"
 
 int main() {
     srand(time(NULL));
     
     int N;
-    char input;
-
+    int mode;
+    
     printf("=== SpyNet: The Codebreaker Protocol ===\n");
     printf("Enter grid size (5-15): ");
     
-
     if (scanf("%d", &N) != 1 || N < 5 || N > 15) {
         printf("Error: Grid size must be between 5 and 15.\n");
         return 1;
     }
 
+    printf("\nSelect Game Mode:\n");
+    printf("1. Human vs. Human\n");
+    printf("2. Human vs. Computer\n");
+    printf("> ");
+    if (scanf("%d", &mode) != 1 || (mode != 1 && mode != 2)) {
+        printf("Error: Invalid mode selection.\n");
+        return 1;
+    }
 
     char** gameGrid = createGrid(N); 
     initGrid(gameGrid, N); 
 
-    Player p1;
-    initPlayer(&p1, '@', 0, 0); 
+    Player agents[2];
     
+    initPlayer(&agents[0], '@', 0, 0); 
+    gameGrid[0][0] = '.';
 
-    gameGrid[0][0] = '.'; 
+    initPlayer(&agents[1], '&', N-1, N-1);
+    gameGrid[N-1][N-1] = '.';
 
-    printf("Mission Start. Collect 3 Intel (1) and reach Extraction (X).\n");
+    printf("\nMission Start. Collect 3 Intel (I) and reach Extraction (X).\n");
 
+    int turn = 0;
+    int gameRunning = 1;
 
-    while (p1.isActive) {
+    while (gameRunning) {
+        Player* current = &agents[turn];
         
+        if (!current->isActive) {
+            turn = !turn;
+            continue; 
+        }
 
-        displayGrid(gameGrid, N, p1);
-        printf("Agent %c | Lives: %d | Intel: %d/3\n", p1.symbol, p1.lives, p1.intel);
-        printf("Move (W/A/S/D) or Q to quit: ");
+        displayGrid(gameGrid, N, agents, 2);
+        
+        printf("\n--- Player %c's Turn ---\n", current->symbol);
+        printf("Lives: %d | Intel: %d/3\n", current->lives, current->intel);
 
-        scanf(" %c", &input); 
+        char input = 0;
 
+        if (turn == 0) {
+            printf("Move (W/A/S/D) or Q to quit: ");
+            scanf(" %c", &input);
+            while ((getchar()) != '\n'); 
+        } 
+        else {
+            if (mode == 1) {
+                printf("Move (I/J/K/L) or Q to quit: ");
+                scanf(" %c", &input);
+                while ((getchar()) != '\n'); 
+
+                if (input == 'i' || input == 'I') input = 'w';
+                else if (input == 'k' || input == 'K') input = 's';
+                else if (input == 'j' || input == 'J') input = 'a';
+                else if (input == 'l' || input == 'L') input = 'd';
+            } 
+            else {
+                printf("Computer is thinking...\n");
+                input = computeMove(current, gameGrid, N); 
+                printf("Computer chose: %c\n", input);
+            }
+        }
 
         if (input == 'Q' || input == 'q') {
-            printf("Mission Aborted by User.\n");
-            p1.isActive = 0; 
-            logMove("gamelog.txt", p1, input, gameGrid, N);
-            break;
+            printf("Player %c quit the mission.\n", current->symbol);
+            current->isActive = 0;
+            if (turn == 0) gameRunning = 0;
+        } else {
+            movePlayer(current, input, gameGrid, N);
+            handleInteractions(current, gameGrid);
+            logMove("gamelog.txt", *current, input, gameGrid, N);
+
+            int status = checkGameStatus(current, gameGrid);
+
+            if (status == 1) {
+                displayGrid(gameGrid, N, agents, 2);
+                printf("\n*** PLAYER %c WINS! ***\n", current->symbol);
+                gameRunning = 0;
+            } 
+            else if (status == -1) {
+                printf("\n>> Player %c has been eliminated!\n", current->symbol);
+                current->isActive = 0; 
+
+                if (turn == 0) {
+                    printf("*** MISSION FAILED: You were neutralized. ***\n");
+                    gameRunning = 0;
+                } else {
+                    printf(">> Target Down. Continue the mission, Agent!\n");
+                }
+            }
         }
 
-
-        movePlayer(&p1, input, gameGrid, N);
-        handleInteractions(&p1, gameGrid);
-        logMove("gamelog.txt", p1, input, gameGrid, N); 
-
-        int status = checkGameStatus(&p1, gameGrid);
-
-        if (status == 1) {
-            displayGrid(gameGrid, N, p1);
-            printf("\n*** MISSION ACCOMPLISHED ***\n");
-            printf("Intel secured. Extraction successful.\n");
-            break;
-        } 
-        else if (status == -1) {
-            displayGrid(gameGrid, N, p1);
-            printf("\n*** MISSION FAILED ***\n");
-            
-            if (p1.lives <= 0) printf("Agent neutralized (Lives: 0).\n");
-            else printf("Extracted without required Intel.\n");
-            
-            break;
-        }
+        turn = !turn;
     }
 
     freeGrid(gameGrid, N);

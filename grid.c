@@ -18,13 +18,14 @@ char** createGrid(int n) {
 }
 
 void initGrid(char** grid, int n) {
+
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             grid[i][j] = '.';
         }
     }
 
-    int counts[4] = {3, 2, 1, n};
+    int counts[4] = {3, 2, 1, n}; 
     char items[4] = {'I', 'L', 'X', '#'};
 
     for (int k = 0; k < 4; k++) {
@@ -33,41 +34,52 @@ void initGrid(char** grid, int n) {
             int r = rand() % n;
             int c = rand() % n;
             
-            if (grid[r][c] == '.' && (r != 0 || c != 0)) {
+            
+            int p1Safe = (r == 0 && c == 0) || 
+                         (r == 0 && c == 1) || 
+                         (r == 1 && c == 0);   
+
+            int p2Safe = (r == n-1 && c == n-1) || 
+                         (r == n-1 && c == n-2) || 
+                         (r == n-2 && c == n-1);   
+
+            if (grid[r][c] == '.' && !p1Safe && !p2Safe) {
                 grid[r][c] = items[k];
                 placed++;
             }
         }
     }
-
-	grid[0][1] = '.'; 
-    grid[1][0] = '.'; 
-    grid[1][1] = '.';
+    
 }
 
-void displayGrid(char** grid, int n, Player p) {
+void displayGrid(char** grid, int n, Player* agents, int numAgents) {
     printf("\n");
 
     for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            printf("+---");
-        }
+        for (int j = 0; j < n; j++) printf("+---");
+
         printf("+\n");
 
         for (int j = 0; j < n; j++) {
             printf("| ");
-            if (i == p.currentRow && j == p.currentCol) {
-                printf("%c ", p.symbol);
-            } else {
+            
+            int drawn = 0;
+            for (int k = 0; k < numAgents; k++) {
+                if (agents[k].isActive && agents[k].currentRow == i && agents[k].currentCol == j) {
+                    printf("%c ", agents[k].symbol);
+                    drawn = 1;
+                    break;
+                }
+            }
+
+            if (!drawn) {
                 printf("%c ", grid[i][j]);
             }
         }
         printf("|\n");
     }
 
-    for (int i = 0; i < n; i++) {
-        printf("+---");
-    }
+    for (int i = 0; i < n; i++) printf("+---");
     printf("+\n");
 }
 
