@@ -41,9 +41,13 @@ void initGrid(char** grid, int n) {
 
             int p2Safe = (r == n-1 && c == n-1) || 
                          (r == n-1 && c == n-2) || 
-                         (r == n-2 && c == n-1);   
+                         (r == n-2 && c == n-1);
 
-            if (grid[r][c] == '.' && !p1Safe && !p2Safe) {
+            int p3Safe = (r == 0 && c == n - 1) ||
+                         (r == 0 && c == n - 2) ||
+                         (r == 1 && c == n - 1);
+
+            if (grid[r][c] == '.' && !p1Safe && !p2Safe && !p3Safe) {
                 grid[r][c] = items[k];
                 placed++;
             }
