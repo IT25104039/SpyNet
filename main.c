@@ -10,9 +10,10 @@
 int main() {
     srand(time(NULL));
     
-    int N, partChoice, subMode;
+    int N, partChoice, subMode, humanCount;
     int numPlayers = 0;
-    int isP2Computer = 0;
+    
+    int isComputer[3] = {0, 0, 0}; 
 
     printf("=== SpyNet: The Codebreaker Protocol ===\n");
     printf("Enter grid size (5-15): ");
@@ -23,8 +24,8 @@ int main() {
 
     printf("\n--- SELECT MISSION TYPE ---\n");
     printf("1. Part 1: Single Player\n");
-    printf("2. Part 2: Two Players (Human vs Human/CPU)\n");
-    printf("3. Part 3: Three Players (All Human)\n");
+    printf("2. Part 2: Two Players\n");
+    printf("3. Part 3: Three Players\n");
     printf("> ");
     if (scanf("%d", &partChoice) != 1) return 1;
 
@@ -38,10 +39,27 @@ int main() {
         printf("2. Human vs Computer\n");
         printf("> ");
         if (scanf("%d", &subMode) != 1) return 1;
-        if (subMode == 2) isP2Computer = 1;
+        
+        if (subMode == 2) {
+            isComputer[1] = 1;
+        }
     } 
     else if (partChoice == 3) {
         numPlayers = 3;
+        printf("\n-- Part 3 Mode --\n");
+        printf("Enter number of HUMAN players (1-3):\n");
+        printf("(Remaining slots will be filled by Computers)\n> ");
+        if (scanf("%d", &humanCount) != 1 || humanCount < 1 || humanCount > 3) {
+            printf("Error: Must be 1-3 humans.\n");
+            return 1;
+        }
+
+        if (humanCount == 1) {
+            isComputer[1] = 1;
+            isComputer[2] = 1;
+        } else if (humanCount == 2) {
+            isComputer[2] = 1;
+        }
     } 
     else {
         printf("Invalid selection.\n");
@@ -53,7 +71,8 @@ int main() {
 
     Player agents[3];
     
-    initPlayer(&agents[0], '@', 0, 0); 
+    
+    initPlayer(&agents[0], '@', 0, 0);
     
     if (numPlayers >= 2) {
         initPlayer(&agents[1], '&', N-1, N-1);
@@ -62,11 +81,12 @@ int main() {
     }
 
     if (numPlayers >= 3) {
-        initPlayer(&agents[2], '$', 0, N-1);
+        initPlayer(&agents[2], '$', 0, N-1); 
     } else {
         agents[2].isActive = 0;
     }
 
+    printf("\nMission Start. All Humans use W/A/S/D.\n");
 
     int turn = 0;
     int gameRunning = 1;
@@ -74,12 +94,11 @@ int main() {
     while (gameRunning) {
         Player* current = &agents[turn];
         
+        // Skip inactive players
         if (!current->isActive) {
             turn = (turn + 1) % 3; 
-            
             if (numPlayers == 1 && turn == 1) turn = 0; 
             if (numPlayers == 2 && turn == 2) turn = 0;
-            
             continue; 
         }
 
@@ -89,14 +108,15 @@ int main() {
         printf("Lives: %d | Intel: %d/3\n", current->lives, current->intel);
 
         char input = 0;
-        int isComputerTurn = (turn == 1 && isP2Computer);
 
-        if (isComputerTurn) {
-            printf("Computer is thinking...\n");
+        // Checking if the current player a Computer
+        if (isComputer[turn]) {
+            printf("Computer (%c) is thinking...\n", current->symbol);
             input = computeMove(current, gameGrid, N);
             printf("Computer chose: %c\n", input);
         } 
         else {
+            // Human Turn
             printf("Enter Move (W/A/S/D): ");
             scanf(" %c", &input);
             while ((getchar()) != '\n');
