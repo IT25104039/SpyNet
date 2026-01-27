@@ -1,8 +1,9 @@
+//Including the header files
 #include <stdio.h>
 #include <ctype.h>
 #include "player.h"
 
-
+//Function to Initialize the player struct with values
 void initPlayer(Player* p, char symbol, int startX, int startY) {
     p->currentRow = startX;
     p->currentCol = startY;
@@ -12,13 +13,14 @@ void initPlayer(Player* p, char symbol, int startX, int startY) {
     p->symbol = symbol; 
 }
 
-
+//Function to check if a move is valid
 int checkValidMove(char** grid, int r, int c, int n) {
 
+    //Checking if the row and column are out of bounds
     if (r < 0 || r >= n || c < 0 || c >= n) {
         return 0;
     }
-
+    //Checking for walls
     if (grid[r][c] == '#') {
         return 0;
     }
@@ -26,6 +28,7 @@ int checkValidMove(char** grid, int r, int c, int n) {
     return 1;
 }
 
+//Function to move the palyer
 int movePlayer(Player* p, char input, char** grid, int n) {
 
     if (!p->isActive) return 0;
@@ -36,6 +39,7 @@ int movePlayer(Player* p, char input, char** grid, int n) {
 
     char cmd = toupper(input);
 
+    //Changing the new row and column depending on the user input
     switch (cmd) {
         case 'W': 
             newRow--; 
@@ -53,7 +57,8 @@ int movePlayer(Player* p, char input, char** grid, int n) {
             validInput = 0;
             break;
     }
-
+    
+    //Checking for invalid inputs
     if (!validInput) {
         
         printf(">> Invalid direction. life lost.\n");

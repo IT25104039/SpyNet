@@ -1,3 +1,4 @@
+//Including header files
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -8,13 +9,17 @@
 #include "computer.h"
 
 int main() {
+    //Generating a seed for the radnom number function
     srand(time(NULL));
     
+    //Initializing and declaring variables needed for the menu
     int N, partChoice, subMode, humanCount;
     int numPlayers = 0;
     
+    //Array to keep track of how many players are computers
     int isComputer[3] = {0, 0, 0}; 
 
+    //Asking the user for the grid size
     printf("=== SpyNet: The Codebreaker Protocol ===\n");
     printf("Enter grid size (5-15): ");
     if (scanf("%d", &N) != 1 || N < 5 || N > 15) {
@@ -22,10 +27,11 @@ int main() {
         return 1;
     }
 
-    printf("\n--- SELECT MISSION TYPE ---\n");
-    printf("1. Part 1: Single Player\n");
-    printf("2. Part 2: Two Players\n");
-    printf("3. Part 3: Three Players\n");
+    //Asking the user for the gamemmode
+    printf("\n--- SELECT GAMEMODE ---\n");
+    printf("1. Single Player\n");
+    printf("2. Two Players\n");
+    printf("3. Three Players\n");
     printf("> ");
     if (scanf("%d", &partChoice) != 1) return 1;
 
@@ -47,13 +53,14 @@ int main() {
     else if (partChoice == 3) {
         numPlayers = 3;
         printf("\n-- Part 3 Mode --\n");
-        printf("Enter number of HUMAN players (1-3):\n");
+        printf("Enter number of HUMAN players (1-3):\n"); //Asking the user for the number of human players
         printf("(Remaining slots will be filled by Computers)\n> ");
         if (scanf("%d", &humanCount) != 1 || humanCount < 1 || humanCount > 3) {
-            printf("Error: Must be 1-3 humans.\n");
+            printf("Error: Must be 1-3 humans.\n"); //validation
             return 1;
         }
 
+        //Setting up the number of computer players
         if (humanCount == 1) {
             isComputer[1] = 1;
             isComputer[2] = 1;
@@ -66,12 +73,13 @@ int main() {
         return 1;
     }
 
+    //Initializing the grid
     char** gameGrid = createGrid(N); 
     initGrid(gameGrid, N); 
 
     Player agents[3];
     
-    
+   //Initializing the agents 
     initPlayer(&agents[0], '@', 0, 0);
     
     if (numPlayers >= 2) {
@@ -86,11 +94,11 @@ int main() {
         agents[2].isActive = 0;
     }
 
-    printf("\nMission Start. All Humans use W/A/S/D.\n");
 
     int turn = 0;
     int gameRunning = 1;
 
+    //Main game loop
     while (gameRunning) {
         Player* current = &agents[turn];
         
@@ -101,7 +109,8 @@ int main() {
             if (numPlayers == 2 && turn == 2) turn = 0;
             continue; 
         }
-
+        
+        //Displaying the grid and the menu
         displayGrid(gameGrid, N, agents, numPlayers);
         
         printf("\n--- Player %c's Turn ---\n", current->symbol);
@@ -122,16 +131,19 @@ int main() {
             while ((getchar()) != '\n');
         }
 
+        //Quitting if the input is q
         if (input == 'Q' || input == 'q') {
-            printf("Player %c quit the mission.\n", current->symbol);
+            printf("Player %c quit the game.\n", current->symbol);
             current->isActive = 0;
             if (numPlayers == 1) gameRunning = 0;
         } 
         else {
+            //Moving the player and logging the move in the file
             movePlayer(current, input, gameGrid, N);
             handleInteractions(current, gameGrid);
             logMove("gamelog.txt", *current, input, gameGrid, N);
 
+            //Checking if the current player has won
             int status = checkGameStatus(current, gameGrid);
             if (status == 1) {
                 displayGrid(gameGrid, N, agents, numPlayers);
@@ -145,6 +157,7 @@ int main() {
             }
         }
 
+        //Checking how many players are still active
         if (numPlayers > 1) {
             int activeCount = 0;
             int winnerIndex = -1;
@@ -154,11 +167,12 @@ int main() {
                     winnerIndex = i;
                 }
             }
-
+            //If no players are active, the game ends
             if (activeCount == 0) {
                 printf("\n*** MISSION FAILED. ALL AGENTS LOST. ***\n");
                 gameRunning = 0;
             } 
+            //If only one player is active, that player wins the game
             else if (activeCount == 1) {
                 displayGrid(gameGrid, N, agents, numPlayers);
                 printf("\n*** PLAYER %c WINS BY SURVIVAL! ***\n", agents[winnerIndex].symbol);
@@ -168,7 +182,7 @@ int main() {
 
         turn = (turn + 1) % numPlayers;
     }
-
+    //Freeing the memory allocated for the grid after the game ends
     freeGrid(gameGrid, N);
     return 0;
 }
